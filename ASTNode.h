@@ -340,6 +340,9 @@ public:
         // when string literal is matched by yylex(), it's surrounded by quotes.
         this->str = str.substr(1, str.length()-2);
     }
+
+    string TypeName() {return "NLiteral"; }
+    virtual llvm::Value* codeGen(CodeGenContext& context);
 };
 
 #endif
