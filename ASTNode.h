@@ -266,6 +266,80 @@ public:
     virtual llvm::Value* codeGen(CodeGenContext& context);
 };
 
+// expr -> STRUCT_TAG TDOT identifier
+class NStructMember : public NExpression {
+public: 
+    shared_ptr<NIdentifier> tag;
+    shared_ptr<NIdentifier> member;
 
+    NStructMember() {}
+    NStructMember(shared_ptr<NIdentifier> tag, shared_ptr<NIdentifier> member): tag(tag), member(member) {}
+
+    string TypeName() {return "NStructMember"; }
+    virtual llvm::Value* codeGen(CodeGenContext& context);
+};
+
+
+// array_element -> identifier TLBRACKET expr TRBRACKET
+// array_element -> array_element TLBRACKET expr TRBRACKET
+class NArrayIndex : public NExpression {
+public:
+    shared_ptr<NIdentifier> arrayname;
+    shared_ptr<ExpressionList> expressions = make_shared<ExpressionList>();
+
+    NArrayIndex() {}
+    NArrayIndex(shared_ptr<NIdentifier> arrayname, shared_ptr<NExpression> expression)
+    {
+        this->arrayname = arrayname;
+        this->expressions->push_back(expression);
+    }
+    NArrayIndex(shared_ptr<NIdentifier> arrayname, shared_ptr<ExpressionList> expressions)
+    {
+        this->arrayname = arrayname;
+        this->expressions = expressions;
+    }
+
+    string TypeName() {return "NArrayIndex"; }
+    virtual llvm::Value* codeGen(CodeGenContext& context);
+};
+
+// assignment -> array_element TEQUAL expr
+class NArrayAssign : public NExpression {
+public:
+    shared_ptr<NArrayIndex> index;
+    shared_ptr<NExpression> assign;
+
+    NArrayAssign() {}
+    NArrayAssign(shared_ptr<NArrayIndex> index, shared_ptr<NExpression> assign): index(index), assign(assign) {}
+
+    string TypeName() {return "NArrayAssign"; }
+    virtual llvm::Value* codeGen(CodeGenContext& context);
+};
+
+// assignment -> STRUCT_TAG TDOT identifier TEQUAL expr
+class NStructAssign : public NExpression {
+public:
+    shared_ptr<NStructMember> struct_mem;
+    shared_ptr<NExpression> assign;
+
+    NStructAssign() {}
+    NStructAssign(shared_ptr<NStructMember> struct_mem, shared_ptr<NExpression> assign): struct_mem(struct_mem), assign(assign) {}
+
+    string TypeName() {return "NStructAssign"; }
+    virtual llvm::Value* codeGen(CodeGenContext& context);
+};
+
+// expr -> TLITERAL
+class NLiteral : public NExpression {
+public:
+    string str;
+
+    NLiteral() {}
+    NLiteral(const string str)
+    {
+        // when string literal is matched by yylex(), it's surrounded by quotes.
+        this->str = str.substr(1, str.length()-2);
+    }
+};
 
 #endif
