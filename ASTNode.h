@@ -116,7 +116,156 @@ public:
     NAssignment() {}
     NAssignment(shared_ptr<NIdentifier> lhs, shared_ptr<NExpression> rhs): lhs(lhs), rhs(rhs) {}
 
-    
+    string TypeName() {return "NAssignment"; }
+    virtual llvm::Value* codeGen(CodeGenContext& context);  
 };
+
+// NBlock presents collection of statements.
+class NBlock : public NStatement {
+public:
+    shared_ptr<StatementList> statements = make_shared<StatementList>();
+
+    NBlock() {}
+    void AddStatement(shared_ptr<NStatement> p) {this->statements->push_back(p);}
+
+    string TypeName() {return "NBlock"; }
+    virtual llvm::Value* codeGen(CodeGenContext& context);
+};
+
+// stmt -> expr SEMI
+class NExpressionStatement : public NStatement {
+public:
+    shared_ptr<NExpression> expression;
+
+    NExpressionStatement() {}
+    NExpressionStatement(shared_ptr<NExpression> expression): expression(expression) {}
+
+    string TypeName() {return "NExpressionStatement";}
+    virtual llvm::Value* codeGen(CodeGenContext& context);
+};
+
+// type id optional[assignment]
+class NVariableDeclaration : public NStatement {
+public:
+    shared_ptr<NIdentifier> type;
+    shared_ptr<NIdentifier> id;
+    shared_ptr<ExpressionList> assignmentExpr = nullptr;
+
+    NVariableDeclaration() {}
+    NVariableDeclaration(shared_ptr<NIdentifier> type, shared_ptr<NIdentifier> id, shared_ptr<ExpressionList> expr = NULL)
+    {
+        this->type = type;
+        this->id = id;
+        this->assignmentExpr = expr;
+        assert(type->is_type);
+        assert(!type->is_array || (type->is_array && type->arraysize != nullptr));
+    }
+    NVariableDeclaration(shared_ptr<NIdentifier> type, shared_ptr<NIdentifier> id, shared_ptr<NExpression> expr)
+    {
+        this->type = type;
+        this->id = id;
+        if (expr != nullptr)
+        {
+            this->assignmentExpr = make_shared<ExpressionList>();
+            this->assignmentExpr->push_back(expr);
+        }
+        assert(type->is_type);
+        assert(!type->is_array || (type->is_array && type->arraysize != nullptr));
+    }
+
+    string TypeName() {return "NVariableDeclaration";}
+    virtual llvm::Value* codeGen(CodeGenContext& context);
+};
+
+// (1) extern type id args
+// (2) type id args CompSt
+class NFunctionDeclaration : public NStatement {
+public:
+    shared_ptr<NIdentifier> type;
+    shared_ptr<NIdentifier> id;
+    shared_ptr<VariableList> args = nullptr;
+    shared_ptr<NBlock> block;
+    bool is_extern = false;
+
+    NFunctionDeclaration() {}
+    NFunctionDeclaration(shared_ptr<NIdentifier> type, shared_ptr<NIdentifier> id, shared_ptr<VariableList> args, shared_ptr<NBlock> block, bool is_extern = false)
+    {
+        this->type = type;
+        this->id = id;
+        this->args = args;
+        this->block = block;
+        this->is_extern = is_extern;
+
+        assert(type->is_type);
+    }
+
+    string TypeName() {return "NFunctionDeclaration"; }
+    virtual llvm::Value* codeGen(CodeGenContext& context);
+};
+
+// TSTRUCT id TLBRACE members TRBRACE
+class NStructDeclaration : public NStatement {
+public:
+    shared_ptr<NIdentifier> id;
+    shared_ptr<VariableList> member = nullptr;
+
+    NStructDeclaration() {}
+    NStructDeclaration(shared_ptr<NIdentifier> id, shared_ptr<VariableList> member):id(id), member(member) {}
+
+    string TypeName() {return "NStructDeclaration"; }
+    virtual llvm::Value* codeGen(CodeGenContext& context);
+};
+
+// Stmt -> TRETURN expr SEMI
+class NReturnStatement : public NStatement {
+public:
+    shared_ptr<NExpression> expression;
+
+    NReturnStatement() {}
+    NReturnStatement(shared_ptr<NExpression> expression): expression(expression) {}
+
+    string TypeName() {return "NreturnStatement"; }
+    virtual llvm::Value* codeGen(CodeGenContext& context);
+};
+
+// if_stmt -> TIF TLPAREN expr TRPAREN CompSt
+// if_stmt -> TIF TLPAREN expr TRPAREN CompSt TELSE CompSt
+// if_stmt -> TIF TLPAREN expr TRPAREN CompSt TELSE if_stmt
+class NIfStatement : public NStatement {
+public:
+    shared_ptr<NExpression> condition;
+    shared_ptr<NBlock> TrueBlock;
+    shared_ptr<NBlock> FalseBlock;
+
+    NIfStatement() {}
+    NIfStatement(shared_ptr<NExpression> condition, shared_ptr<NBlock> TrueBlock, shared_ptr<NBlock> FalseBlock = nullptr)
+    {
+        this->condition = condition;
+        this->TrueBlock = TrueBlock;
+        this->FalseBlock = FalseBlock;
+    }
+
+    string TypeName() {return "NIfStatement"; }
+    virtual llvm::Value* codeGen(CodeGenContext& context);
+};
+
+// while_stmt -> TWHILE TLPAREN expr TRPAREN CompSt
+class NWhileStatement : public NStatement {
+public:
+    shared_ptr<NExpression> testcase;
+    shared_ptr<NBlock> block;
+
+    NWhileStatement() {}
+    NWhileStatement(shared_ptr<NBlock> block, shared_ptr<NExpression> testcase = nullptr): testcase(testcase), block(block) 
+    {
+        if(testcase == nullptr)
+            this->testcase = make_shared<NInteger>(1);
+    }
+
+    string TypeName() {return "NWhileStatement"; }
+    virtual llvm::Value* codeGen(CodeGenContext& context);
+};
+
+
 
 #endif

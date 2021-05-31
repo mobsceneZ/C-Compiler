@@ -21,8 +21,6 @@
 %token <string> TIDENTIFIER TLITERAL TVDOUBLE TVINTEGER TEXTERN
 %token <string> TYDOUBLE TYCHAR TYSTRING TYVOID TYFLOAT TYBOOL TYINT
 
-%nonassoc TCEQ TCNE TCLT TCLE TCGT TCGE
-
 %start Program
 
 %%
@@ -77,7 +75,7 @@ identifier : TIDENTIFIER
 
 ExtDecList : identifier 
            | identifier TEQUAL expr
-           | identifier TEQUAL TLBRACKET expr TRBRACKET
+           | identifier TEQUAL TLBRACKET Args TRBRACKET
            ;
 
  /* Variable Declaration Ends */
@@ -134,7 +132,7 @@ expr : assignment
      | TVINTEGER
      | TVDOUBLE
      | expr comparison expr
-     | expr arithemetic expr
+     | expr arithmetic expr
      | TLPAREN expr TRPAREN
      | TMINUS expr
      | array_element
@@ -150,7 +148,7 @@ comparison : TCEQ | TCNE | TCLT | TCLE | TCGE | TCGT
            | TAND | TOR | TXOR
            ;
 
-arithemetic : TPLUS | TMINUS | TMUL | TDIV | TMOD
+arithmetic : TPLUS | TMINUS | TMUL | TDIV | TMOD
             | TLSHIFT | TRSHIFT
             ;
 
@@ -166,7 +164,7 @@ Args : expr COMMA Args
  /* Function Declaration Ends */
 
  /* Structure Declaration Starts */
-struct_declar : TSTRUCT STRUCT_TAG TLBRACE DefList TRBRACE COMMA
+struct_declar : TSTRUCT STRUCT_TAG TLBRACE DefList TRBRACE SEMI
               ;
 
  /* Structure Declaration Ends */
