@@ -71,3 +71,5 @@
 "."                                                   { return INT_TOKEN(TDOT); }
 "\n"                                                  { yycolumn = 1; }
 .                                                     { errorLexFlag = 1; printf("Mysterious character at line %d: \'%s\'\n", yylineno, yytext); }
+
+%%

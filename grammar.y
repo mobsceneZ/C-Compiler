@@ -4,11 +4,10 @@
     #include <cstdlib>
     #include "ASTNode.h"
 
-    shared_ptr<NBlock> programBlock;
+    extern shared_ptr<NBlock> programBlock;
     extern int errorLexFlag;
     extern int errorSyntaxFlag;
     extern int yylex();
-
 %}
 
  /* Possible Type of terminals and non-terminals */
@@ -49,6 +48,7 @@
 %left TCGE TCGT TCLE TCLT TCNE TCEQ
 %left TPLUS TMINUS
 %left TMUL TDIV TMOD
+%left TLSHIFT TRSHIFT
 %left TLPAREN TRPAREN TLBRACKET TRBRACKET TDOT
 
 %start Program
