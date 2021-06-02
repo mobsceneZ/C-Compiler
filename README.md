@@ -9,19 +9,19 @@
 
 ### Build Environment
 
-This project is built upon *Ubuntu 18.04* ( LLVM on Windows requires complicated configuration )
+This project is built upon **Ubuntu 18.04** ( LLVM on Windows requires complicated configuration )
 
-##### (1) Flex & Bison
+#### (1) Flex & Bison
 
 ```sh
 sudo apt install flex bison
 ```
 
-##### (2) LLVM 9.0.0
+#### (2) LLVM 9.0.0
 
 - Download LLVM from official website: 
   - Website address: https://releases.llvm.org/download.html#9.0.0
-  - Target Prebuilt Binaries: *clang+llvm-9.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz*
+  - Target Prebuilt Binaries: **clang+llvm-9.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz**
   - You can download the packet at host machine and drag it into virtual machine due to speed issue.
 
 - Extract the tar.xz: 
@@ -63,12 +63,29 @@ A Makefile will be provided later.
 
 ### Trouble Shooting
 
-- union type should not contain shared_ptr<> type in grammar.y. (https://www.igoodtv.com/p/1742753.html)
-- "'yylloc' was not declared in this scope" (http://www.cppblog.com/woaidongmao/archive/2008/11/23/67635.html)
-- "‘fileno’ was not declared in this scope" (https://stackoverflow.com/questions/29692136/)
-- "g++ compiler is not recognizing inbuilt input() function of lex" (https://stackoverflow.com/questions/32220319/)
-- Undefined reference to 'yylex()' (https://stackoverflow.com/questions/1480138/)
-- Undefined reference to 'vtable' (https://stackoverflow.com/questions/3065154/)
+- union type should not contain shared_ptr<> type in grammar.y. 
+
+  (https://www.igoodtv.com/p/1742753.html)
+
+- "'yylloc' was not declared in this scope" 
+
+  (http://www.cppblog.com/woaidongmao/archive/2008/11/23/67635.html)
+
+- "‘fileno’ was not declared in this scope" 
+
+  (https://stackoverflow.com/questions/29692136/)
+
+- "g++ compiler is not recognizing inbuilt input() function of lex" 
+
+  (https://stackoverflow.com/questions/32220319/)
+
+- Undefined reference to 'yylex()' 
+
+  (https://stackoverflow.com/questions/1480138/)
+
+- Undefined reference to 'vtable' 
+
+  (https://stackoverflow.com/questions/3065154/)
 
 
 
