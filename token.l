@@ -3,7 +3,7 @@
     #include <string>
     #include <cstdlib>
     #include "ASTNode.h"
-    #include "grammar.tab.h"
+    #include "grammar.hpp"
 
     extern int errorLexFlag;
 
@@ -14,17 +14,17 @@
 		  yylloc.last_column = yycolumn + yyleng - 1; \
 		  yycolumn += yyleng;
     
-    #define STRING_TOKEN ( yylval.string = make_shared<string>(yytext) )
+    #define STRING_TOKEN ( yylval.strings = new string(yytext) )
     #define INT_TOKEN(t) ( yylval.token = t )
 %}
 
-%option yylineno
 %option noyywrap
+%option yylineno
 
 %%
 
 [ \t]+                                                { }
-"//"                                                  { while(input() != '\n'); }
+"//"                                                  { while(yyinput() != '\n'); }
 "/*"([^\*]|(\*)*[^\*/])*(\*)*"*/"                     { }
 "if"                                                  { return INT_TOKEN(TIF); }
 "else"                                                { return INT_TOKEN(TELSE); }

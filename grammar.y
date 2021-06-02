@@ -1,41 +1,47 @@
+%locations
+
 %{
     #include <cstdio>
     #include <memory>
     #include <cstdlib>
     #include "ASTNode.h"
 
-    extern shared_ptr<NBlock> programBlock;
+    extern NBlock* programBlock;
     extern int errorLexFlag;
     extern int errorSyntaxFlag;
+    extern int yylineno;
     extern int yylex();
+    void yyerror(char* msg);
 %}
 
  /* Possible Type of terminals and non-terminals */
 %union
 {
-    shared_ptr<NBlock> block;
-    shared_ptr<NExpression> expr;
-    shared_ptr<NStatement> stmt;
-    shared_ptr<NIdentifier> ident;
-    shared_ptr<NVariableDeclaration> var_decl;
-    shared_ptr<vector<shared_ptr<NVariableDeclaration>>> varvec;
-    shared_ptr<vector<shared_ptr<NExpression>>> exprvec;
+    NBlock* block;
+    NExpression* expr;
+    NStatement* stmt;
+    NIdentifier* ident;
+    NVariableDeclaration* var_decl;
+    vector<shared_ptr<NVariableDeclaration>>* varvec;
+    vector<shared_ptr<NExpression>>* exprvec;
     int token;
-    shared_ptr<string> string;
+    string* strings;
+    NArrayIndex* array_index;
 }
 
 %token <token> TPLUS TMINUS TMUL TDIV TMOD TLSHIFT TRSHIFT 
 %token <token> TCEQ TCNE TCLT TCLE TCGT TCGE TAND TOR TXOR
 %token <token> SEMI COMMA TLBRACKET TRBRACKET TLPAREN TRPAREN TEQUAL
 %token <token> TLBRACE TRBRACE TRETURN TIF TWHILE TELSE TSTRUCT TDOT
-%token <string> TIDENTIFIER TLITERAL TVDOUBLE TVINTEGER TEXTERN
-%token <string> TYDOUBLE TYCHAR TYSTRING TYVOID TYFLOAT TYBOOL TYINT
+%token <strings> TIDENTIFIER TLITERAL TVDOUBLE TVINTEGER TEXTERN
+%token <strings> TYDOUBLE TYCHAR TYSTRING TYVOID TYFLOAT TYBOOL TYINT
 
 %type <exprvec> Args
 %type <var_decl> ParamDec
+%type <expr> expr assignment
 %type <varvec> FunDec VarList
+%type <array_index> array_element
 %type <token> comparison arithmetic
-%type <expr> expr assignment array_element
 %type <block> Program ExtDefList CompSt DefList StmtList
 %type <ident> Specifier identifier BASE_TYPE ARRAY_TYPE STRUCT_TYPE STRUCT_TAG
 %type <stmt> var_declar struct_declar func_declar ExtDef Stmt if_stmt while_stmt
@@ -59,7 +65,7 @@ Program : ExtDefList { programBlock = $1; }
         ;
 
 ExtDefList : ExtDefList ExtDef { $1->AddStatement(shared_ptr<NStatement>($2)); $$ = $1; }
-           | ExtDef {$$ = make_shared<NBlock>(); $$->AddStatement(shared_ptr<NStatement>($1)); }
+           | ExtDef {$$ = new NBlock(); $$->AddStatement(shared_ptr<NStatement>($1)); }
            ;
 
 ExtDef : var_declar { $$ = $1; }
@@ -71,9 +77,9 @@ ExtDef : var_declar { $$ = $1; }
  /* Variable Declaration Starts */
  /* Supports ARRAY, STRUCT two complex type. */
  /* Supports int, double, string, float, char and etc. */
-var_declar : Specifier identifier SEMI { $$ = make_shared<NVariableDeclaration>(shared_ptr<NIdentifier>($1), shared_ptr<NIdentifier>($2), nullptr); }
-           | Specifier identifier TEQUAL expr SEMI { $$ = make_shared<NVariableDeclaration>(shared_ptr<NIdentifier>($1), shared_ptr<NIdentifier>($2), shared_ptr<NExpression>($4)); }
-           | Specifier identifier TEQUAL TLBRACKET Args TRBRACKET SEMI { $$ = make_shared<NVariableDeclaration>(shared_ptr<NIdentifier>($1), shared_ptr<NIdentifier>($2), shared_ptr<ExpressionList>($5)); }
+var_declar : Specifier identifier SEMI { $$ = new NVariableDeclaration(shared_ptr<NIdentifier>($1), shared_ptr<NIdentifier>($2)); }
+           | Specifier identifier TEQUAL expr SEMI { $$ = new NVariableDeclaration(shared_ptr<NIdentifier>($1), shared_ptr<NIdentifier>($2), shared_ptr<NExpression>($4)); }
+           | Specifier identifier TEQUAL TLBRACKET Args TRBRACKET SEMI { $$ = new NVariableDeclaration(shared_ptr<NIdentifier>($1), shared_ptr<NIdentifier>($2), shared_ptr<ExpressionList>($5)); }
            | error SEMI { errorSyntaxFlag = 1; }
            ;
 
@@ -82,50 +88,50 @@ Specifier : BASE_TYPE { $$ = $1; }
           | STRUCT_TYPE { $$ = $1; }
           ;
 
-BASE_TYPE : TYINT { $$ = make_shared<NIdentifier>(*$1); $$->SetType(); }
-          | TYDOUBLE { $$ = make_shared<NIdentifier>(*$1); $$->SetType(); }
-          | TYBOOL { $$ = make_shared<NIdentifier>(*$1); $$->SetType(); }
-          | TYCHAR { $$ = make_shared<NIdentifier>(*$1); $$->SetType(); }
-          | TYSTRING { $$ = make_shared<NIdentifier>(*$1); $$->SetType(); }
-          | TYFLOAT { $$ = make_shared<NIdentifier>(*$1); $$->SetType(); }
-          | TYVOID { $$ = make_shared<NIdentifier>(*$1); $$->SetType(); }
+BASE_TYPE : TYINT { $$ = new NIdentifier(*$1); $$->SetType(); delete $1; }
+          | TYDOUBLE { $$ = new NIdentifier(*$1); $$->SetType(); delete $1; }
+          | TYBOOL { $$ = new NIdentifier(*$1); $$->SetType(); delete $1; }
+          | TYCHAR { $$ = new NIdentifier(*$1); $$->SetType(); delete $1; }
+          | TYSTRING { $$ = new NIdentifier(*$1); $$->SetType(); delete $1; }
+          | TYFLOAT { $$ = new NIdentifier(*$1); $$->SetType(); delete $1; }
+          | TYVOID { $$ = new NIdentifier(*$1); $$->SetType(); delete $1; }
           ;
 
-ARRAY_TYPE : ARRAY_TYPE TLBRACKET TVINTEGER TRBRACKET { $1->AddDimension(make_shared<NInteger>(stoll($3))); $$ = $1; }
-           | BASE_TYPE TLBRACKET TVINTEGER TRBRACKET { $1->SetArray(); $1->AddDimension(make_shared<NInteger>(stoll($3))); $$ = $1; }
+ARRAY_TYPE : ARRAY_TYPE TLBRACKET TVINTEGER TRBRACKET { $1->AddDimension(make_shared<NInteger>(stoll(*$3))); delete $3; $$ = $1; }
+           | BASE_TYPE TLBRACKET TVINTEGER TRBRACKET { $1->SetArray(); $1->AddDimension(make_shared<NInteger>(stoll(*$3))); delete $3; $$ = $1; }
            ;
 
 STRUCT_TYPE : TSTRUCT STRUCT_TAG { $2->SetType(); $$ = $2; }
             ;
 
-STRUCT_TAG : TIDENTIFIER { $$ = make_shared<NIdentifier>(*$1); }
+STRUCT_TAG : TIDENTIFIER { $$ = new NIdentifier(*$1); delete $1; }
            ;
 
-identifier : TIDENTIFIER { $$ = make_shared<NIdentifier>(*$1); }
+identifier : TIDENTIFIER { $$ = new NIdentifier(*$1); delete $1; }
            ;
 
  /* Variable Declaration Ends */
 
  /* Function Declaration Starts */
-func_declar : Specifier identifier FunDec CompSt { $$ = make_shared<NFunctionDeclaration>(shared_ptr<NIdentifier>($1), shared_ptr<NIdentifier>($2), shared_ptr<VariableList>($3), shared_ptr<NBlock>($4)); }
-            | TEXTERN Specifier identifier FunDec SEMI { $$ = make_shared<NFunctionDeclaration>(shared_ptr<NIdentifier>($2), shared_ptr<NIdentifier>($3), shared_ptr<VariableList>($4), nullptr, true); }
+func_declar : Specifier identifier FunDec CompSt { $$ = new NFunctionDeclaration(shared_ptr<NIdentifier>($1), shared_ptr<NIdentifier>($2), shared_ptr<VariableList>($3), shared_ptr<NBlock>($4)); }
+            | TEXTERN Specifier identifier FunDec SEMI { $$ = new NFunctionDeclaration(shared_ptr<NIdentifier>($2), shared_ptr<NIdentifier>($3), shared_ptr<VariableList>($4), nullptr, true); delete $1; }
             ;
 
-FunDec : TLPAREN TRPAREN { $$ = make_shared<VariableList>(); }
+FunDec : TLPAREN TRPAREN { $$ = new VariableList(); }
        | TLPAREN VarList TRPAREN { $$ = $2; }
        | error TRPAREN { errorSyntaxFlag = 1; }
        ;
 
 VarList : VarList COMMA ParamDec { $1->push_back(shared_ptr<NVariableDeclaration>($3)); $$ = $1; }
-        | ParamDec { $$ = make_shared<VariableList>(); $$->push_back(shared_ptr<NVariableDeclaration>($1)); }
+        | ParamDec { $$ = new VariableList(); $$->push_back(shared_ptr<NVariableDeclaration>($1)); }
         ;
 
-ParamDec : Specifier identifier { $$ = make_shared<NVariableDeclaration>(shared_ptr<NIdentifier>($1), shared_ptr<NIdentifier>($2)); }
+ParamDec : Specifier identifier { $$ = new NVariableDeclaration(shared_ptr<NIdentifier>($1), shared_ptr<NIdentifier>($2)); }
          ;
 
  /* which means the definition should be before statements. */
 CompSt : TLBRACE DefList StmtList TRBRACE {
-                                                $$ = make_shared<NBlock>();
+                                                $$ = new NBlock();
                                                 for(auto it=($2)->statements->begin();it!=($2)->statements->end(); it++)
                                                         $$->AddStatement(*it);
                                                 for(auto it=($3)->statements->begin();it!=($3)->statements->end(); it++)
@@ -135,50 +141,50 @@ CompSt : TLBRACE DefList StmtList TRBRACE {
        ;
 
 DefList : DefList var_declar { $1->AddStatement(shared_ptr<NStatement>($2)); $$ = $1; }
-        | { $$ = make_shared<NBlock>(); }
+        | { $$ = new NBlock(); }
         ;
 
 StmtList : StmtList Stmt { $1->AddStatement(shared_ptr<NStatement>($2)); $$ = $1; }
-         | { $$ = make_shared<NBlock>(); }
+         | { $$ = new NBlock(); }
          ;
 
-Stmt : expr SEMI { $$ = make_shared<NExpressionStatement>(shared_ptr<NExpression>($1)); }
-     | TRETURN expr SEMI { $$ = make_shared<NReturnStatement>(shared_ptr<NExpression>($2)); }
+Stmt : expr SEMI { $$ = new NExpressionStatement(shared_ptr<NExpression>($1)); }
+     | TRETURN expr SEMI { $$ = new NReturnStatement(shared_ptr<NExpression>($2)); }
      | if_stmt { $$ = $1; }
      | while_stmt { $$ = $1; }
      | error SEMI { errorSyntaxFlag = 1; }
      ;
 
-if_stmt : TIF TLPAREN expr TRPAREN CompSt { $$ = make_shared<NIfStatement>(shared_ptr<NExpression>($3), shared_ptr<NBlock>($5)); }
-        | TIF TLPAREN expr TRPAREN CompSt TELSE CompSt { $$ = make_shared<NIfStatement>(shared_ptr<NExpression>($3), shared_ptr<NBlock>($5), shared_ptr<NBlock>($7)); }
+if_stmt : TIF TLPAREN expr TRPAREN CompSt { $$ = new NIfStatement(shared_ptr<NExpression>($3), shared_ptr<NBlock>($5)); }
+        | TIF TLPAREN expr TRPAREN CompSt TELSE CompSt { $$ = new NIfStatement(shared_ptr<NExpression>($3), shared_ptr<NBlock>($5), shared_ptr<NBlock>($7)); }
         | TIF TLPAREN expr TRPAREN CompSt TELSE if_stmt {
-                                                                auto blk = make_shared<NBlock>();
+                                                                auto blk = new NBlock();
                                                                 blk->AddStatement(shared_ptr<NStatement>($7));
-                                                                $$ = make_shared<NIfStatement>(shared_ptr<NExpression>($3), shared_ptr<NBlock>($5), shared_ptr<NBlock>(blk));
+                                                                $$ = new NIfStatement(shared_ptr<NExpression>($3), shared_ptr<NBlock>($5), shared_ptr<NBlock>(blk));
                                                         }
         ;
 
-while_stmt : TWHILE TLPAREN expr TRPAREN CompSt  { $$ = make_shared<NWhileStatement>(shared_ptr<NBlock>($5), shared_ptr<NExpression>($3)); }
+while_stmt : TWHILE TLPAREN expr TRPAREN CompSt  { $$ = new NWhileStatement(shared_ptr<NBlock>($5), shared_ptr<NExpression>($3)); }
 
  /* Expression Part. */
 expr : assignment { $$ = $1; }
-     | identifier TLPAREN Args TRPAREN { $$ = make_shared<NMethodCall>(shared_ptr<NIdentifier>($1), shared_ptr<ExpressionList>($3)); }
+     | identifier TLPAREN Args TRPAREN { $$ = new NMethodCall(shared_ptr<NIdentifier>($1), shared_ptr<ExpressionList>($3)); }
      | identifier { $$ = $1; }
-     | STRUCT_TAG TDOT identifier { $$ = make_shared<NStructMember>(shared_ptr<NIdentifier>($1), shared_ptr<NIdentifier>($3)); }
-     | TVINTEGER { $$ = make_shared<NInteger>(stoll($1)); }
-     | TVDOUBLE { $$ = make_shared<NDouble>(stod($1)); }
-     | expr comparison expr { $$ = make_shared<NBinaryOperator>(($2), shared_ptr<NExpression>($1), shared_ptr<NExpression>($3)); }
-     | expr arithmetic expr { $$ = make_shared<NBinaryOperator>(($2), shared_ptr<NExpression>($1), shared_ptr<NExpression>($3)); }
+     | STRUCT_TAG TDOT identifier { $$ = new NStructMember(shared_ptr<NIdentifier>($1), shared_ptr<NIdentifier>($3)); }
+     | TVINTEGER { $$ = new NInteger(stoll(*$1)); delete $1; }
+     | TVDOUBLE { $$ = new NDouble(stod(*$1)); delete $1; }
+     | expr comparison expr { $$ = new NBinaryOperator(($2), shared_ptr<NExpression>($1), shared_ptr<NExpression>($3)); }
+     | expr arithmetic expr { $$ = new NBinaryOperator(($2), shared_ptr<NExpression>($1), shared_ptr<NExpression>($3)); }
      | TLPAREN expr TRPAREN { $$ = $2; }
      | array_element { $$ = $1; }
-     | TLITERAL { $$ = make_shared<NLiteral>(*$1); }
+     | TLITERAL { $$ = new NLiteral(*$1); delete $1; }
      ;
 
-assignment : identifier TEQUAL expr { $$ = make_shared<NAssignment>(shared_ptr<NIdentifier>($1), shared_ptr<NExpression>($3)); }
-           | array_element TEQUAL expr { $$ = make_shared<NArrayAssign>(shared_ptr<NArrayIndex>($1), shared_ptr<NExpression>($3)); }
+assignment : identifier TEQUAL expr { $$ = new NAssignment(shared_ptr<NIdentifier>($1), shared_ptr<NExpression>($3)); }
+           | array_element TEQUAL expr { $$ = new NArrayAssign(shared_ptr<NArrayIndex>($1), shared_ptr<NExpression>($3)); }
            | STRUCT_TAG TDOT identifier TEQUAL expr {
-                                                        auto member = make_shared<NStructMember>(shared_ptr<NIdentifier>($1), shared_ptr<NIdentifier>($3));
-                                                        $$ = make_shared<NStructAssign>(shared_ptr<NStructMember>(member), shared_ptr<NExpression>($5));
+                                                        auto member = new NStructMember(shared_ptr<NIdentifier>($1), shared_ptr<NIdentifier>($3));
+                                                        $$ = new NStructAssign(shared_ptr<NStructMember>(member), shared_ptr<NExpression>($5));
                                                     }
            ;
 
@@ -190,23 +196,23 @@ arithmetic : TPLUS | TMINUS | TMUL | TDIV | TMOD
             | TLSHIFT | TRSHIFT
             ;
 
-array_element : identifier TLBRACKET expr TRBRACKET { $$ = make_shared<NArrayIndex>(shared_ptr<NIdentifier>($1), shared_ptr<NExpression>($3)); }
+array_element : identifier TLBRACKET expr TRBRACKET { $$ = new NArrayIndex(shared_ptr<NIdentifier>($1), shared_ptr<NExpression>($3)); }
               | array_element TLBRACKET expr TRBRACKET { $1->expressions->push_back(shared_ptr<NExpression>($3)); $$ = $1; }
               ;
 
 Args : Args COMMA expr { $1->push_back(shared_ptr<NExpression>($3)); $$ = $1; }
-     | expr { $$ = make_shared<ExpressionList>(); $$->push_back(shared_ptr<NExpression>($1)); }
-     | { $$ = make_shared<ExpressionList>(); }
+     | expr { $$ = new ExpressionList(); $$->push_back(shared_ptr<NExpression>($1)); }
+     | { $$ = new ExpressionList(); }
      ;
 
  /* Function Declaration Ends */
 
  /* Structure Declaration Starts */
 struct_declar : TSTRUCT STRUCT_TAG TLBRACE DefList TRBRACE SEMI {
-                                                                        auto var_list = make_shared<VariableList>();
+                                                                        auto var_list = new VariableList();
                                                                         for(auto it=($4)->statements->begin(); it!=($4)->statements->end(); it++)
-                                                                                var_list->push_back(shared_ptr<NVariableDeclaration>(*it));
-                                                                        $$ = make_shared<NStructDeclaration>(shared_ptr<NIdentifier>($2), shared_ptr<VariableList>(var_list));
+                                                                                var_list->push_back(shared_ptr<NVariableDeclaration>(dynamic_pointer_cast<NVariableDeclaration>(*it)));
+                                                                        $$ = new NStructDeclaration(shared_ptr<NIdentifier>($2), shared_ptr<VariableList>(var_list));
                                                                 }
               ;
 
