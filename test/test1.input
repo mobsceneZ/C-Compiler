@@ -20,9 +20,10 @@ int main()
 	struct pointer k;
 	int i = 1;
 	anc[0] = 2;
-	p.x = 6;
+	scanf("%d", p.x);
+	p.y = "Hello World!";
 	k.x = 4;
-	printf("%d", p.x);
+	printf("%d %s", p.x, p.y);
 	puts("");
 	
 	if (p.x < 5)

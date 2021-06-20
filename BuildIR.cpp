@@ -464,6 +464,8 @@ llvm::Value * NStructMember::codeBuild(BuildContext & context)
     indices.push_back(ConstantInt::get(context.getVarType("int"), 0, false));
     indices.push_back(ConstantInt::get(context.getVarType("int"), memind, false));
     auto ptr = context.builder.CreateInBoundsGEP(varptr, indices, "memberPtr");
+    if (context.in_scanf)
+        return ptr;
     return context.builder.CreateLoad(ptr, false);
 }
 llvm::Value * NStructAssign::codeBuild(BuildContext & context)

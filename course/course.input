@@ -1,0 +1,323 @@
+extern int printf(string format);
+extern int puts(string str);
+extern int scanf(string format);
+extern int gets(string str);
+
+void courseHandle(char[500] ts, char[105][50] cn, int[105] cr, char[105][7][7][50] pr, int[105] prgn, int[105][7] prcn, char[105] cg, int ind)
+{
+	int i = 0;
+	int part = 1;
+	int cnind = 0;
+	int prind = 0;
+	
+	prgn[ind] = 0;
+	prcn[ind][0] = 0;
+	cr[ind] = 0;
+	
+	while(i < 500)
+	{
+		if (ts[i] != '|')
+		{
+			// course name
+			if (part == 1)
+			{
+				cn[ind][cnind] = ts[i];
+				cnind = cnind + 1;
+			}
+			// credit
+			if (part == 2)
+			{
+				char c = ts[i];
+				int addnum = 0;
+				if (c == '1')	{ addnum = 1; }
+				if (c == '2')	{ addnum = 2; }
+				if (c == '3')	{ addnum = 3; }
+				if (c == '4')	{ addnum = 4; }
+				if (c == '5')	{ addnum = 5; }
+				if (c == '6')	{ addnum = 6; }
+				if (c == '7')	{ addnum = 7; }
+				if (c == '8')	{ addnum = 8; }
+				if (c == '9')	{ addnum = 9; }
+				cr[ind] = addnum + cr[ind] * 10;
+			}
+			// prev class
+			if (part == 3)
+			{
+				if ((ts[i] == ',') || (ts[i] == ';'))
+				{
+					pr[ind][prgn[ind]][prcn[ind][prgn[ind]]][prind] = '\0';
+					if (ts[i] == ',')
+					{
+						prcn[ind][prgn[ind]] = prcn[ind][prgn[ind]] + 1;
+						prind = 0;
+					}
+					if (ts[i] == ';')
+					{
+						prgn[ind] = prgn[ind] + 1;
+						prcn[ind][prgn[ind]] = 0;
+						prind = 0;
+					}
+				}
+				else
+				{
+					pr[ind][prgn[ind]][prcn[ind][prgn[ind]]][prind] = ts[i];
+					prind = prind + 1;
+				}
+			}
+			// gpa
+			if (part == 4)
+			{
+				if (ts[i] != '\0')
+				{
+					cg[ind] = ts[i];
+				}
+				else
+				{
+					cg[ind] = '\0';
+				}
+				i = 500;
+			}
+		}
+		else
+		{
+			if (part == 1)
+			{
+				cn[ind][cnind] = '\0';
+			}
+			if (part == 3)
+			{
+				pr[ind][prgn[ind]][prcn[ind][prgn[ind]]][prind] = '\0';
+			}
+			part = part + 1;
+		}
+		
+		i = i + 1;
+	}
+}
+
+int isNotDone(int ind, int[105] dl, int dlind)
+{
+	int i = 0;
+	
+	while (i < dlind)
+	{
+		if (ind == dl[i])
+		{
+			return 0;
+		}	
+		i = i + 1;
+	}
+	return 1;
+}
+
+int cmpClassName(char[105][50] cn, char[105][7][7][50] prev, int pind, int prgn, int prcn, int[105] dl, int dlind)
+{
+	int i = 0;
+	int j = 0;
+	
+	while(i < dlind)
+	{
+		j = 0;
+		while (j < 50)
+		{
+			if ( cn[dl[i]][j] != prev[pind][prgn][prcn][j] )
+			{
+				j = 50;
+			}
+			if ( (cn[dl[i]][j] == prev[pind][prgn][prcn][j]) && (cn[dl[i]][j] == '\0') )
+			{
+				return 1;
+			}
+			j = j + 1;
+		}
+		i = i + 1;
+	}
+	
+	return 0;
+}
+
+int calRecommend(char[105][50] cn, char[105][7][7][50] prev, int[105] prgn, int[105][7] prcn, int[105] dl, int dlind, int cnum, int[105] rl)
+{
+	int i = 0;
+	int rlind = 0;
+	
+	while ( i < cnum )
+	{
+		// check
+		if ( isNotDone(i,dl,dlind) == 1 )
+		{	
+			if (prev[i][0][0][0] == '\0')
+			{
+				rl[rlind] = i;
+				rlind = rlind + 1;				
+			}
+			else
+			{
+				int prev_group_ind = 0;
+				while (prev_group_ind < (prgn[i]+1))
+				{
+					int prev_class_ind = 0;
+					while (prev_class_ind < (prcn[i][prgn[i]]+1))
+					{
+						// cmp one class name
+						if ( cmpClassName (cn, prev, i, prev_group_ind, prev_class_ind, dl, dlind) == 1 )
+						{
+							if ( prev_class_ind == prcn[i][prgn[i]] )
+							{
+								rl[rlind] = i;
+								rlind = rlind + 1;
+								prev_group_ind = prgn[i];
+							}
+						}
+						else
+						{
+							prev_class_ind = prcn[i][prgn[i]];
+						}
+						
+						prev_class_ind = prev_class_ind + 1;
+					}
+					
+					prev_group_ind = prev_group_ind + 1;
+				}
+			}	
+		}
+		i = i + 1;
+	}
+	
+	return rlind;
+}
+
+int main()
+{
+	/* INPUT */
+	// for 100 classes
+	char[105][50] course_name;
+	int[105] credit;
+	// at most 7 groups, 7 classes, 25 chars each
+	char[105][7][7][50] prev;
+	int[105] prev_group_num;
+	int[105][7] prev_class_num;
+
+	char[105] course_gpa;
+	
+	/* OUTPUT */
+	double gpa;
+	int tried_credits = 0;
+	int got_credits = 0;
+	int last_credits = 0;
+	
+	/* USEFUL */
+	int total_credits = 0;
+	int class_num = 0;
+	int flag_endin = 0;
+	char[500] tmpstr;
+	double scores = 0.0;
+	int[105] done_list;
+	int done_list_ind = 0;
+	int[105] recommend_list;
+	int recommend_list_ind = 0;
+	
+	/* handle input */
+	while (flag_endin == 0)
+	{
+		// init tmpstr
+		int i = 0;
+		while (i < 500)
+		{
+			tmpstr[i] = '\0';
+			i = i + 1;
+		}
+		// get line
+		gets(tmpstr);
+		// handle
+		if (tmpstr[0] != '\0')
+		{
+			courseHandle(tmpstr, course_name, credit, prev, prev_group_num, prev_class_num, course_gpa, class_num);
+			total_credits = total_credits + credit[class_num];
+			if (course_gpa[class_num] == 'A')
+			{
+				scores = scores + credit[class_num] * 4.0;
+				tried_credits = tried_credits + credit[class_num];
+				got_credits = got_credits + credit[class_num];
+				done_list[done_list_ind] = class_num;
+				done_list_ind = done_list_ind + 1;
+			}
+			if (course_gpa[class_num] == 'B')
+			{
+				scores = scores + credit[class_num] * 3.0;
+				tried_credits = tried_credits + credit[class_num];
+				got_credits = got_credits + credit[class_num];
+				done_list[done_list_ind] = class_num;
+				done_list_ind = done_list_ind + 1;
+			}
+			if (course_gpa[class_num] == 'C')
+			{
+				scores = scores + credit[class_num] * 2.0;
+				tried_credits = tried_credits + credit[class_num];
+				got_credits = got_credits + credit[class_num];
+				done_list[done_list_ind] = class_num;
+				done_list_ind = done_list_ind + 1;
+			}
+			if (course_gpa[class_num] == 'D')
+			{
+				scores = scores + credit[class_num] * 1.0;
+				tried_credits = tried_credits + credit[class_num];
+				got_credits = got_credits + credit[class_num];
+				done_list[done_list_ind] = class_num;
+				done_list_ind = done_list_ind + 1;
+			}
+			if (course_gpa[class_num] == 'F')
+			{
+				tried_credits = tried_credits + credit[class_num];
+			}
+			
+			class_num = class_num + 1;
+		}
+		else
+		{
+			flag_endin = 1;
+		}
+	}
+	
+	/* cal recommend */
+	recommend_list_ind = calRecommend(course_name, prev, prev_group_num, prev_class_num, done_list, done_list_ind, class_num, recommend_list);
+	
+	printf("GPA: ");
+	if (scores == 0.0)
+	{
+		gpa = 0.0;
+	}
+	else
+	{
+		gpa = scores / (tried_credits*1.0);
+	}
+	printf("%1.1lf", gpa);	puts("");
+	printf("Hours Attempted: %d", tried_credits);	puts("");
+	printf("Hours Completed: %d", got_credits); 	puts("");
+	printf("Credits Remaining: %d", total_credits - got_credits); 	puts("");
+	puts("");
+	printf("Possible Courses to Take Next");	puts("");
+	if ((recommend_list_ind == 0) && (total_credits == got_credits))
+	{
+		printf("  None - Congratulations!");
+		puts("");
+	}
+	else
+	{
+		int i = 0;
+		while(i < recommend_list_ind)
+		{
+			int j = 0;
+			printf("  ");
+			while( course_name[recommend_list[i]][j] != '\0' )
+			{
+				printf("%c", course_name[recommend_list[i]][j]);
+				j = j + 1;
+			}
+			puts("");
+			i = i + 1;
+		}
+	}
+	
+	return 0;
+}
