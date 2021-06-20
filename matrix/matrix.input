@@ -1,0 +1,70 @@
+extern int printf(string format);
+extern int puts(string str);
+extern int scanf(string format);
+
+int main()
+{
+    int A_M;
+    int A_N;
+    int B_M;
+    int B_N;
+    int[625] A;
+    int[625] B;
+    
+    int i;
+    int j;
+    int k;
+    int tmp;
+    
+    scanf("%d %d", A_M, A_N);
+    
+    i = 0;
+    tmp = A_M * A_N;
+    while (i < tmp)
+    {
+        scanf("%6d", A[i]);
+        i = i + 1;
+    }
+    
+    scanf("%d %d", B_M, B_N);
+    
+    i = 0;
+    tmp = B_M * B_N;
+    while (i < tmp)
+    {
+        scanf("%6d", B[i]);
+        i = i + 1;
+    }
+    
+    if (A_N != B_M)
+    {
+        printf("Incompatible Dimensions");
+        puts("");
+        return 0;
+    }
+    
+    i = 0;
+    j = 0;
+    k = 0;
+    while(i < A_M)
+    {
+        j = 0;
+        while (j < B_N)
+        {
+            k = 0;
+            tmp = 0;
+            while (k < A_N)
+            {
+                tmp = tmp + A[(i * A_N) + k] * B[(k * B_N) + j];
+                k = k + 1;
+            }
+            printf("%10d", tmp);
+            j = j + 1;
+        }
+        puts("");
+        i = i + 1;
+    }
+    
+    
+    return 0;
+}

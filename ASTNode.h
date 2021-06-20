@@ -69,6 +69,16 @@ public:
     virtual llvm::Value* codeBuild(BuildContext & context);
 };
 
+class NChar : public NExpression {
+public:
+    char value;
+    NChar() {}
+    ~NChar() {}
+    NChar(char value): value(value) {}
+    string TypeName() {return "NChar"; }
+    virtual llvm::Value* codeBuild(BuildContext & context);
+};
+
 // Two Possible Uses:
 // 1. Serve As Identifier's TypeName (is_type = true)
 //  (1) if is_array = true, vector arraysize denotes the size of each dimension.

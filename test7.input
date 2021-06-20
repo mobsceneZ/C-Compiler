@@ -1,0 +1,78 @@
+extern int printf(string format);
+extern int puts(string str);
+extern int scanf(string format);
+
+int main()
+{
+	char[25] str;
+	int flag = 0;
+	int i = 0;
+	char[6] c1;
+	char[6] c2;
+	char[2] credit;
+	int index1 = 0;
+	int index2 = 0;
+	int creditind = 0;
+	int shucount = 0;
+	
+	scanf("%s", str);
+	puts("");
+	
+	while(i<25)
+	{
+		if (str[i] == '|')
+		{
+			if(shucount == 2)
+			{
+				flag = 1;
+			}
+		}
+		if (flag != 1)
+		{
+			if (str[i] != '|')
+			{
+				if (index1 != 5)
+				{
+					c1[index1] = str[i];
+					index1 = index1 + 1;
+				}
+				else
+				{
+					if (creditind != 1)
+					{
+						credit[0] = str[i];
+						creditind = creditind + 1;
+					}
+					else
+					{
+						if (index2 != 5)
+						{
+							c2[index2] = str[i];
+							index2 = index2 + 1;
+						}
+					}
+				}
+			}
+			else
+			{
+				shucount = shucount + 1;
+			}
+		}
+		i = i + 1;
+	}
+	
+	c1[5] = '\0';
+	c2[5] = '\0';
+	credit[1] = '\0';
+	
+	printf("%s", str);
+	puts("");
+	printf("%s", c1);
+	puts("");
+	printf("%s", credit);
+	puts("");
+	printf("%s", c2);
+	puts("");
+	
+	return 0;
+}

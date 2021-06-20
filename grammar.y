@@ -33,7 +33,7 @@
 %token <token> TCEQ TCNE TCLT TCLE TCGT TCGE TAND TOR TXOR
 %token <token> SEMI COMMA TLBRACKET TRBRACKET TLPAREN TRPAREN TEQUAL
 %token <token> TLBRACE TRBRACE TRETURN TIF TWHILE TELSE TSTRUCT TDOT
-%token <strings> TIDENTIFIER TLITERAL TVDOUBLE TVINTEGER TEXTERN
+%token <strings> TIDENTIFIER TLITERAL TVDOUBLE TVINTEGER TEXTERN TVCHAR
 %token <strings> TYDOUBLE TYCHAR TYSTRING TYVOID TYFLOAT TYBOOL TYINT
 
 %type <exprvec> Args
@@ -179,6 +179,7 @@ expr : assignment { $$ = $1; }
      | TLPAREN expr TRPAREN { $$ = $2; }
      | array_element { $$ = $1; }
      | TLITERAL { $$ = new NLiteral(*$1); delete $1; }
+     | TVCHAR { if((*$1)[1]=='\\')	{ $$ = new NChar('\0');} else { $$ = new NChar((*$1)[1]);} delete $1; }
      ;
 
 assignment : identifier TEQUAL expr { $$ = new NAssignment(shared_ptr<NIdentifier>($1), shared_ptr<NExpression>($3)); }

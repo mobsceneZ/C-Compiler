@@ -2,21 +2,27 @@ extern int printf(string format);
 extern int puts(string str);
 extern int scanf(string format);
 
-int func(int[5][5] a, int b){
-    if ( b == 1 ) {
-        return 1;
-    }
-    
-    a[2][2] = func(a, b - 1) + b;
-    return a[2][2];
+int func2(int a)
+{
+	return a;
+}
+
+int func1(int[2][2] ab, int i)
+{
+	int a = -3;
+	if (i!=1)
+	{
+		return 2;
+	}
+	return a;
 }
 
 int main()
 {
-   int[5][5] i;
-   func(i, 5);
-   scanf("%d", i[3][3]);
-   printf("It's %d %d", i[2][2], i[3][3]);
+   int[2][2] abc;
+   abc[1][1] = func1(abc, 1);
+   printf("It's %10d", abc[1][1]);
    puts("");
+   
    return 0;
 }

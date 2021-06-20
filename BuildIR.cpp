@@ -8,11 +8,10 @@ static llvm::Value * calArrInd(std::shared_ptr<NArrayIndex> ind, BuildContext & 
 		auto tmp = make_shared<NBinaryOperator>(TMUL, make_shared<NInteger>(asizes[i]), ind->expressions->at(i-1));
 		totalexp = make_shared<NBinaryOperator>(TPLUS, tmp, totalexp);
 	}
-	if (context.in_scanf) {
+	if(context.in_scanf) {
 		auto res = totalexp->codeBuild(context);
 		return context.builder.CreateLoad(res, false);
 	}
-	
 	return totalexp->codeBuild(context);
 }
 
@@ -61,6 +60,11 @@ llvm::Value * NLiteral::codeBuild(BuildContext & context)   // constant string o
 {
     std::cout << "In NLiteral::codeBuild..." << std::endl;
     return context.builder.CreateGlobalString(this->str, "string");
+}
+llvm::Value * NChar::codeBuild(BuildContext & context)
+{
+	std::cout << "In NChar::codeBuild..." << std::endl;
+    return llvm::ConstantInt::get(context.getVarType("char"), this->value, false);
 }
 
 // about expression

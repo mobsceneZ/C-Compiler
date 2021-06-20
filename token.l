@@ -44,6 +44,7 @@
 [A-Za-z_][A-Za-z0-9_]*                                { STRING_TOKEN; return TIDENTIFIER; }
 -?(0|[1-9][0-9]*)                                     { STRING_TOKEN; return TVINTEGER; }
 [0-9]+\.[0-9]+                                        { STRING_TOKEN; return TVDOUBLE; }
+(\'([\\.]|[^\'])\')|(\'\\0\')						  { STRING_TOKEN; return TVCHAR; }
 \"(\\.|[^\"])*\"                                      { STRING_TOKEN; return TLITERAL; }
 "+"                                                   { return INT_TOKEN(TPLUS); }
 "-"                                                   { return INT_TOKEN(TMINUS); }

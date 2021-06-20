@@ -1,0 +1,20 @@
+extern int printf(string format);
+extern int puts(string str);
+extern int scanf(string format);
+
+int main()
+{
+	char b = '|';
+	if (b == '|')
+	{
+		printf("%c", b+1);
+		puts("");
+	}
+	else
+	{
+		printf("%c", b - 1);
+		puts("");
+	}
+
+	return 0;
+}
