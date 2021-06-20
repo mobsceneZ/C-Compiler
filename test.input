@@ -1,0 +1,22 @@
+extern int printf(string format);
+extern int puts(string str);
+extern int scanf(string format);
+
+int func(int[5][5] a, int b){
+    if ( b == 1 ) {
+        return 1;
+    }
+    
+    a[2][2] = func(a, b - 1) + b;
+    return a[2][2];
+}
+
+int main()
+{
+   int[5][5] i;
+   func(i, 5);
+   scanf("%d", i[3][3]);
+   printf("It's %d %d", i[2][2], i[3][3]);
+   puts("");
+   return 0;
+}

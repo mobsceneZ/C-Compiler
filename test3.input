@@ -1,0 +1,34 @@
+extern int printf(string format);
+extern int puts(string str);
+extern int scanf(string format);
+
+void func(int[5] a)
+{
+	
+	if (a[0] == 4)
+	{
+		return ;
+	}
+	
+	a[0] = a[1];
+	a[1] = a[2];
+	a[2] = a[3];
+	a[3] = a[4];
+	func(a);
+}
+
+int main()
+{
+	int[5] a;
+	scanf("%d", a[0]);
+	scanf("%d", a[1]);
+	scanf("%d", a[2]);
+	scanf("%d", a[3]);
+	scanf("%d", a[4]);
+	
+	func(a);
+	printf("%d", a[0]);
+	puts("");
+	
+	return 0;
+}

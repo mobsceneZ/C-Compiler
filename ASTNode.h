@@ -15,6 +15,12 @@ class NStatement;
 class NExpression;
 class NVariableDeclaration;
 
+class BuildContext;
+class NBlock;
+class NStatement;
+class NExpression;
+class NVariableDeclaration;
+
 typedef vector<shared_ptr<NStatement>> StatementList;
 typedef vector<shared_ptr<NExpression>> ExpressionList;
 typedef vector<shared_ptr<NVariableDeclaration>> VariableList;
@@ -24,7 +30,7 @@ public:
     Node() {}
     virtual ~Node() {}
     virtual string TypeName() = 0;
-    // virtual Value* codeGen(CodeGenContext& context) {return NULL;}
+    virtual Value* codeBuild(BuildContext & context) {return (llvm::Value *)0;}
 };
 
 class NExpression : public Node {
@@ -49,7 +55,7 @@ public:
     ~NInteger() {}
     NInteger(long long value):value(value) {}
     string TypeName() {return "NInteger"; }
-    // virtual llvm::Value* codeGen(CodeGenContext& context);
+    virtual llvm::Value* codeBuild(BuildContext & context) override;
 };
 
 // For double constants, like 3.14159.
@@ -60,7 +66,7 @@ public:
     ~NDouble() {}
     NDouble(double value): value(value) {}
     string TypeName() {return "NDouble"; }
-    // virtual llvm::Value* codeGen(CodeGenContext& context);
+    virtual llvm::Value* codeBuild(BuildContext & context);
 };
 
 // Two Possible Uses:
@@ -82,7 +88,7 @@ public:
     void AddDimension(shared_ptr<NExpression> p) {this->arraysize->push_back(p); }
 
     string TypeName() {return "NIdentifier"; }
-    // virtual llvm::Value* codeGen(CodeGenContext& context);
+    virtual llvm::Value* codeBuild(BuildContext & context);
 };
 
 // expr -> identifier LPAREN Args RPAREN
@@ -96,7 +102,7 @@ public:
     NMethodCall(shared_ptr<NIdentifier> id, shared_ptr<ExpressionList> args):id(id), args(args) {}
 
     string TypeName() {return "NMethodCall"; }
-    // virtual llvm::Value* codeGen(CodeGenContext& context);
+    virtual llvm::Value* codeBuild(BuildContext & context);
 };
 
 // expr -> expr comparison expr
@@ -111,7 +117,7 @@ public:
     NBinaryOperator(int op, shared_ptr<NExpression> lhs, shared_ptr<NExpression> rhs):op(op), lhs(lhs), rhs(rhs) {}
 
     string TypeName() {return "NBinaryOperator"; }
-    // virtual llvm::Value* codeGen(CodeGenContext& context);
+    virtual llvm::Value* codeBuild(BuildContext & context);
 };
 
 // expr -> identifier TEQUAL expr
@@ -125,7 +131,7 @@ public:
     NAssignment(shared_ptr<NIdentifier> lhs, shared_ptr<NExpression> rhs): lhs(lhs), rhs(rhs) {}
 
     string TypeName() {return "NAssignment"; }
-    // virtual llvm::Value* codeGen(CodeGenContext& context);  
+    virtual llvm::Value* codeBuild(BuildContext & context);  
 };
 
 // NBlock presents collection of statements.
@@ -138,7 +144,7 @@ public:
     void AddStatement(shared_ptr<NStatement> p) {this->statements->push_back(p);}
 
     string TypeName() {return "NBlock"; }
-    // virtual llvm::Value* codeGen(CodeGenContext& context);
+    virtual llvm::Value* codeBuild(BuildContext & context);
 };
 
 // stmt -> expr SEMI
@@ -151,7 +157,7 @@ public:
     NExpressionStatement(shared_ptr<NExpression> expression): expression(expression) {}
 
     string TypeName() {return "NExpressionStatement";}
-    // virtual llvm::Value* codeGen(CodeGenContext& context);
+    virtual llvm::Value* codeBuild(BuildContext & context);
 };
 
 // type id optional[assignment]
@@ -185,7 +191,7 @@ public:
     }
 
     string TypeName() {return "NVariableDeclaration";}
-    // virtual llvm::Value* codeGen(CodeGenContext& context);
+    virtual llvm::Value* codeBuild(BuildContext & context);
 };
 
 // (1) extern type id args
@@ -212,7 +218,7 @@ public:
     }
 
     string TypeName() {return "NFunctionDeclaration"; }
-    // virtual llvm::Value* codeGen(CodeGenContext& context);
+    virtual llvm::Value* codeBuild(BuildContext & context);
 };
 
 // TSTRUCT id TLBRACE members TRBRACE
@@ -226,7 +232,7 @@ public:
     NStructDeclaration(shared_ptr<NIdentifier> id, shared_ptr<VariableList> member):id(id), member(member) {}
 
     string TypeName() {return "NStructDeclaration"; }
-    // virtual llvm::Value* codeGen(CodeGenContext& context);
+    virtual llvm::Value* codeBuild(BuildContext & context);
 };
 
 // Stmt -> TRETURN expr SEMI
@@ -239,7 +245,7 @@ public:
     NReturnStatement(shared_ptr<NExpression> expression): expression(expression) {}
 
     string TypeName() {return "NreturnStatement"; }
-    // virtual llvm::Value* codeGen(CodeGenContext& context);
+    virtual llvm::Value* codeBuild(BuildContext & context);
 };
 
 // if_stmt -> TIF TLPAREN expr TRPAREN CompSt
@@ -261,7 +267,7 @@ public:
     }
 
     string TypeName() {return "NIfStatement"; }
-    // virtual llvm::Value* codeGen(CodeGenContext& context);
+    virtual llvm::Value* codeBuild(BuildContext & context);
 };
 
 // while_stmt -> TWHILE TLPAREN expr TRPAREN CompSt
@@ -279,7 +285,7 @@ public:
     }
 
     string TypeName() {return "NWhileStatement"; }
-    // virtual llvm::Value* codeGen(CodeGenContext& context);
+    virtual llvm::Value* codeBuild(BuildContext & context);
 };
 
 // expr -> STRUCT_TAG TDOT identifier
@@ -293,7 +299,7 @@ public:
     NStructMember(shared_ptr<NIdentifier> tag, shared_ptr<NIdentifier> member): tag(tag), member(member) {}
 
     string TypeName() {return "NStructMember"; }
-    // virtual llvm::Value* codeGen(CodeGenContext& context);
+    virtual llvm::Value* codeBuild(BuildContext & context);
 };
 
 
@@ -318,7 +324,7 @@ public:
     }
 
     string TypeName() {return "NArrayIndex"; }
-    // virtual llvm::Value* codeGen(CodeGenContext& context);
+    virtual llvm::Value* codeBuild(BuildContext & context);
 };
 
 // assignment -> array_element TEQUAL expr
@@ -332,7 +338,7 @@ public:
     NArrayAssign(shared_ptr<NArrayIndex> index, shared_ptr<NExpression> assign): index(index), assign(assign) {}
 
     string TypeName() {return "NArrayAssign"; }
-    // virtual llvm::Value* codeGen(CodeGenContext& context);
+    virtual llvm::Value* codeBuild(BuildContext & context);
 };
 
 // assignment -> STRUCT_TAG TDOT identifier TEQUAL expr
@@ -346,7 +352,7 @@ public:
     NStructAssign(shared_ptr<NStructMember> struct_mem, shared_ptr<NExpression> assign): struct_mem(struct_mem), assign(assign) {}
 
     string TypeName() {return "NStructAssign"; }
-    // virtual llvm::Value* codeGen(CodeGenContext& context);
+    virtual llvm::Value* codeBuild(BuildContext & context);
 };
 
 // expr -> TLITERAL
@@ -363,7 +369,7 @@ public:
     }
 
     string TypeName() {return "NLiteral"; }
-    // virtual llvm::Value* codeGen(CodeGenContext& context);
+    virtual llvm::Value* codeBuild(BuildContext & context);
 };
 
 #endif

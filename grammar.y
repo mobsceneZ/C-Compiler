@@ -1,4 +1,4 @@
-%locations
+// %locations
 
 %{
     #include <cstdio>
@@ -22,10 +22,10 @@
     NStatement* stmt;
     NIdentifier* ident;
     NVariableDeclaration* var_decl;
-    vector<shared_ptr<NVariableDeclaration>>* varvec;
-    vector<shared_ptr<NExpression>>* exprvec;
+    std::vector<shared_ptr<NVariableDeclaration>>* varvec;
+    std::vector<shared_ptr<NExpression>>* exprvec;
     int token;
-    string* strings;
+    std::string* strings;
     NArrayIndex* array_index;
 }
 
@@ -149,6 +149,7 @@ StmtList : StmtList Stmt { $1->AddStatement(shared_ptr<NStatement>($2)); $$ = $1
          ;
 
 Stmt : expr SEMI { $$ = new NExpressionStatement(shared_ptr<NExpression>($1)); }
+     | TRETURN SEMI {$$ = new NReturnStatement();}
      | TRETURN expr SEMI { $$ = new NReturnStatement(shared_ptr<NExpression>($2)); }
      | if_stmt { $$ = $1; }
      | while_stmt { $$ = $1; }
@@ -218,7 +219,7 @@ struct_declar : TSTRUCT STRUCT_TAG TLBRACE DefList TRBRACE SEMI {
 
  /* Structure Declaration Ends */
 
- %%
+%%
 
 void yyerror(char* msg)
 {

@@ -1,0 +1,26 @@
+extern int printf(string format);
+extern int puts(string str);
+extern int scanf(string format);
+
+int func(int a)
+{
+	int tmp;
+	if(a == 1)
+	{
+		return 1;
+	}
+	
+	tmp = func(a - 1);
+	return tmp+a;
+}
+
+int main()
+{
+	int i;
+	i = func(5);
+	
+	printf("%d", i);
+	puts("");
+	
+	return 0;
+}

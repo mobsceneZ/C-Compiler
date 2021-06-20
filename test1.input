@@ -1,0 +1,40 @@
+extern int printf(string format);
+extern int puts(string str);
+extern int scanf(string format);
+
+struct pointer
+{
+	int x;
+	string y;
+};
+
+int func(struct pointer p)
+{
+	return p.x;
+}
+
+int main()
+{
+	int[2] anc;
+	struct pointer p;
+	struct pointer k;
+	int i = 1;
+	anc[0] = 2;
+	p.x = 6;
+	k.x = 4;
+	printf("%d", p.x);
+	puts("");
+	
+	if (p.x < 5)
+	{
+		printf("%d", p.x);
+		puts("");
+	}
+	else{
+	}
+    
+    printf("%d", func(k)+1);
+    puts("");
+    
+    return 0;
+}

@@ -1,0 +1,82 @@
+extern int printf(string format);
+extern int puts(string str);
+extern int scanf(string format);
+
+int partition(int[10000] i, int low, int high)
+{
+    int key;
+    key = i[low];
+    while ( low < high ) 
+    {
+       while( (low < high) && (i[high] >= key) )
+       {
+           high = high - 1;
+       }
+       
+       if (low < high)
+       {
+           i[low] = i[high];
+           low = low + 1;
+       }
+       
+       while ( (low < high) && (i[low] <= key) )
+       {
+           low = low + 1;
+       }
+       
+       if (low < high)
+       {
+           i[high] = i[low];
+           high = high - 1;
+       }
+    }
+    
+    i[low] = key;
+    return low;
+}
+
+int quicksort(int[10000] i, int start, int end)
+{
+    int pos;
+    if (start < end)
+    {
+        pos = partition(i, start, end);
+        quicksort(i, start, pos - 1);
+        quicksort(i, pos + 1, end);
+    }
+    return 0;
+}
+
+int main()
+{
+    int i;
+    int j;
+    int n;
+    int[10000] arr;
+    
+    scanf("%d", n);
+    if (n == 0)
+    {
+        return 0;
+    }
+    
+    i = 0;
+    while (i < n)
+    {
+        scanf("%d", arr[i]);
+        i = i + 1;
+    }
+    
+    quicksort(arr, 0, n - 1);
+    
+    i = 0;
+    while (i < n)
+    {
+        printf("%d", arr[i]);
+        puts("");
+        i = i + 1;
+    }
+
+    
+    return 0;
+}

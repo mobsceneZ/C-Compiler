@@ -8,11 +8,13 @@
     extern int errorLexFlag;
 
     int yycolumn = 1;
+    /*
     #define YY_USER_ACTION \
 		  yylloc.first_line = yylloc.last_line = yylineno; \
 		  yylloc.first_column = yycolumn; \
 		  yylloc.last_column = yycolumn + yyleng - 1; \
 		  yycolumn += yyleng;
+	*/
     
     #define STRING_TOKEN ( yylval.strings = new string(yytext) )
     #define INT_TOKEN(t) ( yylval.token = t )
@@ -56,8 +58,8 @@
 "<="                                                  { return INT_TOKEN(TCLE); }
 ">"                                                   { return INT_TOKEN(TCGT); }
 ">="                                                  { return INT_TOKEN(TCGE); }
-"&"                                                   { return INT_TOKEN(TAND); }
-"|"                                                   { return INT_TOKEN(TOR); }
+"&&"                                                  { return INT_TOKEN(TAND); }
+"||"                                                  { return INT_TOKEN(TOR); }
 "^"                                                   { return INT_TOKEN(TXOR); }
 ";"                                                   { return INT_TOKEN(SEMI); }
 ","                                                   { return INT_TOKEN(COMMA); }
